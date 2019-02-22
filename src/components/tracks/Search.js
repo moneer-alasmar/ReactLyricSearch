@@ -11,26 +11,30 @@ class Search extends Component {
     this.setState({ trackTitle: e.target.value });
   };
 
-  onSongSubmit = e => {
+  onSongSubmit = (dispatch, e) => {
     e.preventDefault();
     axios
       .get(
-        `http://api.musixmatch.com/ws/1.1/track.search?q_track=${
+        `https://cors-anywhere.herokuapp.com/http://api.musixmatch.com/ws/1.1/track.search?q_track=${
           this.state.trackTitle
-        }&page_size=3&page=1&s_track_rating=desc&apikey=${
+        }&page_size=10&page=1&s_track_rating=desc&apikey=${
           process.env.REACT_APP_MUSIXMATCH_KEY
         }`
       )
       .then(res => {
-        this.setState({ track_list: res.data.message.body.track_list });
-      })
-      .catch(err => console.log(err));
+        dispatch({
+          type: "SEARCH_TRACKS",
+          payload: res.data.message.body.track_list
+        });
+        this.setState({ trackTitle: "" });
+      });
   };
 
   render() {
     return (
       <Consumer>
         {value => {
+          const { dispatch } = value;
           return (
             <div className="card card-body mb-4 p-4">
               <h1 className="display-4 text-center">
@@ -39,7 +43,7 @@ class Search extends Component {
               <p className="lead text-center">
                 Find the lyrics for your favorite songs
               </p>
-              <form onSubmit={this.onSongSubmit}>
+              <form onSubmit={this.onSongSubmit.bind(this, dispatch)}>
                 <div className="form-group">
                   <input
                     type="text"
